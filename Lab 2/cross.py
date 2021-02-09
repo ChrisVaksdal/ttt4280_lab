@@ -1,3 +1,13 @@
+"""
+File: cross.py
+Author: Chris Vaksdal & Jonas Tørnes
+
+Description:    This script analyzes the signals from 3 microphones in order to detect the angle of a sound using cross-correlation.
+                The signals are gathered from "adcData.bin", a binary file containing [3 x N] values encoded as unsigned 16-bit integers where N is the number of samples.
+                Upon completion, the calculated angle is printed to the terminal.
+                Output is in range (0-360).
+
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
@@ -21,7 +31,7 @@ def cross_correlate_get_latency(s1, s2):
     return lag
 
 """ Import sampled data from .bin-file. """
-def import_data(path="adcData.bin", channels=3):
+def import_data(path="240.bin", channels=3):
     with open(path, 'r') as fid:
         sample_period = np.fromfile(fid, count=1, dtype=float)[0]
         data = np.fromfile(fid, dtype=np.uint16)
@@ -67,7 +77,14 @@ if __name__ == "__main__":
     latency_s2s3 = latencyNumSamples_s2s3 * FT
     """
 
+    # Calculate angle:
     # The angle of the sound is calculated using theta = atan((sqrt(3) * (n12+n13)/(n12-n13-2n23))
     theta = atan((3**0.5) * (latencyNumSamples_s1s2 + latencyNumSamples_s1s3)/(latencyNumSamples_s1s2 - latencyNumSamples_s1s3 - 2*latencyNumSamples_s2s3)) # Angle of sound in radians.
+    if latencyNumSamples_s1s3 + latencyNumSamples_s2s3 - latencyNumSamples_s1s2:    # The formula only works when n13+n23-n23 > 0. Otherwise the result will be off by pi.
+        theta += pi
+    
+    # Convert radians to degrees:
     theta *= 360 / (2*pi)   # Convert angle to degrees.
+
+    # Print output:
     print("Angle theta: {}".format(theta))
