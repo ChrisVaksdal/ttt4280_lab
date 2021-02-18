@@ -35,7 +35,7 @@ def bandpass_filter(s, fs, high, low, order):
     a = signal.detrend(a, axis=0)   # Remove DC-component.
     return signal.lfilter(b, a, s)
 
-def complex_fft(data,Fs,real,imag):
+def complex_fft(data,Fs,real=0,imag=1):
     ifi=data[:,real]
     ifq=data[:,imag]
     if(len(ifi)%2==1):
@@ -47,7 +47,7 @@ def complex_fft(data,Fs,real,imag):
     return freq, fft
 
 def radar_speed(data,Fs):
-    fft, freqs=complex(data,Fs,1,2)
+    fft, freqs=complex(data,Fs)
     peak_freq=freq_from_fft(fft,Fs)
     speed=doppler(peak_freq)
     return speed
