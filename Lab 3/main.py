@@ -8,24 +8,26 @@ sample_periode, data=ras_import.raspi_import(file,2)
 
 
 
-signal_I=scipy.fft.rfft(data[]) #Tror disse linjene må flyttes innen for radar_speed
-signal_Q=scipy.fft.rfft(data[])
-
-def doppler(f_d,f_0):
+def doppler(f_d,f_0=24e9):
     c=3e8
     v=(c*f_d)/(2*f_0)
     return v
 
-def sinc_interp(x, s, u):
-    if len(x) != len(s):
-        raise ValueError('x and s must be the same length')
-    
-    # Find the period    
-    T = s[1] - s[0]
-    
-    sincM = np.tile(u, (len(s), 1)) - np.tile(s[:, np.newaxis], (1, len(u)))
-    y = np.dot(x, np.sinc(sincM/T))
-    return y
+def freq_from_fft(sig, fs):
+    """
+    Estimate frequency from peak of FFT
+    """
+    # Compute Fourier transform of windowed signal
+    windowed = sig * np.blackmanharris(len(sig))
+    f = np.rfft(windowed)
+
+    # Find the peak and interpolate to get a more accurate peak
+    i = np.argmax(abs(f))  # Just use this for less-accurate, naive version
+    true_i = np.parabolic(np.log(abs(f)), i)[0]
+
+    # Convert to equivalent frequency
+    return fs * true_i / len(windowed)
+
 
 def bandpass_filter(s, fs, high, low, order):
     om = fs/2
@@ -33,5 +35,19 @@ def bandpass_filter(s, fs, high, low, order):
     a = signal.detrend(a, axis=0)   # Remove DC-component.
     return signal.lfilter(b, a, s)
 
+def complex_fft(data,Fs,real,imag):
+    ifi=data[:,real]
+    ifq=data[:,imag]
+    if(len(ifi)%2==1):
+        ifi=ifi[:-1]
+        ifq=ifq[:-1]
+    compelx_signal=complex(ifi,ifq)
+    fft=np.fft.fft(compelx_signal)
+    freq=np.fft.fftfreq(fft.size) #usikker på om dette er riktig
+    return freq, fft
+
 def radar_speed(data,Fs):
-    fft, freqs=
+    fft, freqs=complex(data,Fs,1,2)
+    peak_freq=freq_from_fft(fft,Fs)
+    speed=doppler(peak_freq)
+    return speed
