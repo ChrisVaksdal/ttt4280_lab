@@ -4,7 +4,7 @@ from scipy import signal
 import numpy as np
 import matplotlib.pyplot as plt
 
-sample_periode, data = ras_import.raspi_import('radarData.bin', 2)
+sample_periode, data = ras_import.raspi_import('radarData2.bin', 2)
 
 
 def doppler(f_d, f_0=24e9):
