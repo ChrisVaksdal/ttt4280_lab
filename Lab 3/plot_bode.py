@@ -29,10 +29,11 @@ ch2=[p[2] for p in data]
 
 
 plt.semilogx(time,ch2)
-plt.semilogx(time,ch1)
+#plt.semilogx(time,ch1)
 #plt.semilogx(time,ch2)
+
 plt.xlabel(header[0])
 plt.ylabel(" [dB]")
-plt.legend(header[1:],loc="upper right")
-#plt.savefig('filename.png', dpi=600)
+plt.legend(header[1:],loc="lower right")
+plt.savefig('filename.png', dpi=600)
 plt.show()
