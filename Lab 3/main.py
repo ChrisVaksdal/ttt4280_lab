@@ -3,7 +3,7 @@ import ras_import
 from scipy import signal
 import numpy as np
 import matplotlib.pyplot as plt
-
+import statistics
 sample_periode, data = ras_import.raspi_import('radarData.bin', 2)
 
 
@@ -70,8 +70,8 @@ def complex_fft(data, Fs, real=0, imag=1):
     # print(fft)
     # Finds the frquency of the sampled fft
     freq = np.fft.fftfreq(fft.size, 1/Fs)
-    plt.plot(freq, fft)
-    plt.show()
+    #plt.plot(freq, fft)
+    #plt.show()
     return freq, fft, dir
 
 
@@ -83,5 +83,21 @@ def radar_speed(data, Fs=32.5e3):
     speed = doppler(peak_freq)
     return speed
 
+def standar_div(antall):
+    speed=[]
+    for i in range(antall):
+        sample_periode, data = ras_import.raspi_import('radarData'+str(i)+'.bin', 2)
+        speed.append(radar_speed(data))
+    return statistics.stedv(fart)
+
+def power_sectrum(data,Fs=32.5e3):
+    freqs, fft, dir = complex_fft(data, Fs)
+    plt.plot(freqs, 10*np.log10(abs(fft)))
+    plt.title("Power spectrum of FFT")
+    plt.xlabel("Frewuency [Hz]")
+    plt.ylabel("Power [dB]")
+    plt.show()
+
 
 print("Fart:", radar_speed(data))
+power_sectrum(data)
