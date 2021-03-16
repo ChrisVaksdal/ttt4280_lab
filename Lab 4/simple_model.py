@@ -39,4 +39,11 @@ def penetration_depth(mua,musr):
     delta=sqrt(1/(3*(musr+mua)*mua))
     return delta
 
+def transmitans(depth,mua,musr):
+    return np.exp(-sqrt(3*mua*(musr+mua))*depth)
+
+def reflectance(mua,musr):
+    return 1/(penetration_depth(mua,musr)*mua)
+
+print(transmitans(0.02,mua[0],musr[0]))
 print(penetration_depth(mua[0],musr[0]))
