@@ -17,7 +17,7 @@ def shelf_filter(s, fs, high):
     return s
 
 # Import data from bin file
-filename="finger_11_data.csv"
+filename="finger_17_data.csv"
 
 with open(filename) as csvfile:
     csvreader=csv.reader(csvfile, delimiter=" ")
