@@ -26,7 +26,8 @@ def find_peak(fft, freqs):
     return peakFreq*60
 filnavn=["finger_data_24.csv","finger_14_data.csv","finger_data_20.csv","finger_data_23.csv","finger_11_data.csv"]
 h_puls=["finger_data_26.csv"]
-for i in filnavn:
+reflectans=["finger_data_32.csv","finger_data_40.csv", "finger_data_41.csv"]
+for i in test:
 # Import data from bin file
     filename=i
 
