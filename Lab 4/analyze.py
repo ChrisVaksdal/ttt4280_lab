@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.core.fromnumeric import mean
 import scipy.signal as signal
 import csv
 from scipy.interpolate import UnivariateSpline as spline
+from scipy import stats
 import statistics
 
 def bandpass_filter(s, fs, high, low, order):
@@ -15,7 +17,8 @@ def shelf_filter(s, fs, high):
     b, a = signal.butter(10, (high*2/fs), btype="high")
     a = signal.detrend(a, axis=0)   # Remove DC-component.
     return signal.lfilter(b, a, s)
-    return s
+def SNR(fft,puls_freq):
+    return statistics.mean(fft)/puls_freq
 r=[]
 g=[]
 b=[]
@@ -27,7 +30,7 @@ def find_peak(fft, freqs):
 filnavn=["finger_data_24.csv","finger_14_data.csv","finger_data_20.csv","finger_data_23.csv","finger_11_data.csv"]
 h_puls=["finger_data_26.csv"]
 reflectans=["finger_data_32.csv","finger_data_40.csv", "finger_data_41.csv"]
-for i in test:
+for i in reflectans:
 # Import data from bin file
     filename=i
 
@@ -53,6 +56,9 @@ for i in test:
         #data = cs(data)
         freq = np.fft.fftfreq(n=num_of_samples, d=sample_period)
         spectrum = np.fft.fft(data,num_of_samples, axis=0)  # takes FFT of all channels
+        print("SNR R",SNR(10*np.log(np.abs(spectrum[:,0])),10*np.log(abs(np.argmax(spectrum)))))
+        print("SNR G",SNR(10*np.log(np.abs(spectrum[:,1])),10*np.log(abs(np.argmax(spectrum)))))
+        print("SNR B",SNR(10*np.log(np.abs(spectrum[:,2])),10*np.log(abs(np.argmax(spectrum)))))
         for i in range(len(freq)):
             if freq[i]<=0.7 or freq[i]>=3.5:
                 spectrum[i]=0
