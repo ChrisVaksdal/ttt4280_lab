@@ -17,8 +17,11 @@ def shelf_filter(s, fs, high):
     b, a = signal.butter(10, (high*2/fs), btype="high")
     a = signal.detrend(a, axis=0)   # Remove DC-component.
     return signal.lfilter(b, a, s)
-def SNR(fft,puls_freq):
-    return statistics.mean(fft)/puls_freq
+
+def SNR(fft):
+    return 20*np.log10(abs(np.max(abs(fft))))-(20*np.log10(statistics.mean(abs(fft[600:1000]))))
+
+
 r=[]
 g=[]
 b=[]
@@ -30,7 +33,7 @@ def find_peak(fft, freqs):
 filnavn=["finger_data_24.csv","finger_14_data.csv","finger_data_20.csv","finger_data_23.csv","finger_11_data.csv"]
 h_puls=["finger_data_26.csv"]
 reflectans=["finger_data_32.csv","finger_data_40.csv", "finger_data_41.csv"]
-for i in reflectans:
+for i in filnavn:
 # Import data from bin file
     filename=i
 
@@ -49,6 +52,7 @@ for i in reflectans:
 
         # Generate time axis
         num_of_samples = data.shape[0]  # returns shape of matrix
+        print(num_of_samples)
         t = np.linspace(start=0, stop=num_of_samples*sample_period, num=num_of_samples)
 
         # Generate frequency axis and take FFT
@@ -56,12 +60,14 @@ for i in reflectans:
         #data = cs(data)
         freq = np.fft.fftfreq(n=num_of_samples, d=sample_period)
         spectrum = np.fft.fft(data,num_of_samples, axis=0)  # takes FFT of all channels
-        print("SNR R",SNR(10*np.log(np.abs(spectrum[:,0])),10*np.log(abs(np.argmax(spectrum)))))
-        print("SNR G",SNR(10*np.log(np.abs(spectrum[:,1])),10*np.log(abs(np.argmax(spectrum)))))
-        print("SNR B",SNR(10*np.log(np.abs(spectrum[:,2])),10*np.log(abs(np.argmax(spectrum)))))
+        print("SNR R",SNR(spectrum[:,0]))
+        print("SNR G",SNR(spectrum[:,1]))
+        print("SNR B",SNR(spectrum[:,2]))
+        '''
         for i in range(len(freq)):
             if freq[i]<=0.7 or freq[i]>=3.5:
                 spectrum[i]=0
+        '''
         #spectrum = shelf_filter(spectrum, 1/sample_period, 1)
         r.append(find_peak(spectrum[:,0],freq))
         g.append(find_peak(spectrum[:,1],freq))
@@ -78,7 +84,7 @@ for i in reflectans:
         plt.title("Power spectrum of signal")
         plt.xlabel("Frequency [Hz]")
         plt.ylabel("Power [dB]")
-        plt.plot(freq, 20*np.log(np.abs(spectrum))) # get the power spectrum
+        plt.plot(freq, 20*np.log10(np.abs(spectrum))) # get the power spectrum
 
         plt.show()
         #plt.savefig("noise.png")
