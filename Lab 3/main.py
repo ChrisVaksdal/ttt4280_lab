@@ -4,7 +4,7 @@ from scipy import signal
 import numpy as np
 import matplotlib.pyplot as plt
 import statistics
-sample_periode, data = ras_import.raspi_import('cardata2.bin', 2)
+sample_periode, data = ras_import.raspi_import('cardata4.bin', 2)
 
 
 def doppler(f_d, f_0=24e9):
@@ -13,8 +13,8 @@ def doppler(f_d, f_0=24e9):
     return v
 
 
-def fart(v, f_0=24.13e9):
-    return (2*f_0*v)/(3e8)
+def fart(f_d, f_0=24.13e9):
+    return (3e8*f_d)/(2*f_0)
 
 
 def freq_from_fft(sig, fs):
@@ -59,48 +59,28 @@ def complex_fft(data, Fs, real=0, imag=1):
         ifq = ifq[:-1]
     ifi = signal.detrend(ifi, axis=0)  # Remove the DC komponent
     ifq = signal.detrend(ifq, axis=0)
-    # print(ifi)
-    # print(ifq)
+   
     complex_signal = np.vectorize(complex)(ifi, ifq)
     # FIndin the diffrences in angle betwen to phasor to calculate wich way the dopler shift is
-    '''
-    diff = np.rad2deg(
-        angle(complex_signal[100]))-np.rad2deg(angle(complex_signal[200]))
-    dir = int(diff)/abs(int(diff))
-    '''
+ 
+    
     fft = np.fft.fft(complex_signal)
 
-    # print(fft)
-    # Finds the frquency of the sampled fft
+  
     fft=10*np.log10(abs(fft))
-    freq = np.fft.fftfreq(fft.size, 1/Fs)
-    #treshold=100
-    #fft=fft[(fft>=-treshold) & (fft<=treshold)]
-    #plt.plot(freq, fft)
-    #plt.show()
-    return freq, fft, dir
+    freq = np.fft.fftfreq(fft.size, d=1/Fs)
+    
+    for i in range(len(freq)):
+        if freq[i]>=-60 and freq[i]<=60:
+            fft[i]=0
+    
+
+    return freq, fft
 
 
 def radar_speed(data, Fs=32.5e3):
-    freqs, fft, dir = complex_fft(data, Fs)
-    print("Retningen til farten", dir)
-    print(doppler(find_peak(fft,freqs)))
-    neg=fft[:int(len(fft)/2)]
-    freqs_neg=freqs[20:int(len(fft)/2)-21]
-    pos=fft[int(len(fft)/2):-1]
-    freqs_pos=freqs[21+int(len(fft)/2):-20]
-    neg=neg[20:-20]
-    pos=pos[20:-20]
-    #print(len(pos))
-    #print(len(freqs_pos))
-    peak_pos=find_peak(pos,freqs_pos)
-    peak_neg = find_peak(neg, freqs_neg)
-    #print(peak_pos)
-    if (abs(peak_pos)>abs(peak_neg)):
-        speed=doppler(peak_pos)
-    else:
-        speed=doppler(peak_neg)
-    
+    freqs, spectrum= complex_fft(data, Fs)
+    speed=fart(find_peak(spectrum,freqs))
     return speed
 
 def standar_div(antall):
@@ -111,13 +91,13 @@ def standar_div(antall):
     return statistics.stdev(speed)
 
 def power_sectrum(data,Fs=32.5e3):
-    freqs, fft, dir = complex_fft(data, Fs)
-    plt.plot(freqs, fft)
+    freqs, spectrum= complex_fft(data, Fs)
+    plt.plot(freqs, spectrum)
     plt.title("Power spectrum of FFT")
     plt.xlabel("Frewuency [Hz]")
     plt.ylabel("Power [dB]")
+    plt.savefig("Power_spectrum_fft.png",dpi=600)
     plt.show()
-
 
 print("Fart:", radar_speed(data))
 power_sectrum(data)
